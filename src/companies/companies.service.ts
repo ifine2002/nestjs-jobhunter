@@ -3,14 +3,14 @@ import { CreateCompanyDto } from './dto/create-company.dto';
 import { UpdateCompanyDto } from './dto/update-company.dto';
 import { Company, CompanyDocument } from './schemas/company.schema';
 import { InjectModel } from '@nestjs/mongoose';
-import { SoftDeleteModel } from 'soft-delete-plugin-mongoose';
 import { IUser } from 'src/users/users.interface';
 import aqp from 'api-query-params';
+import { MongooseDeleteModel } from 'src/common/interfaces/mongoose-delete.model';
 
 @Injectable()
 export class CompaniesService {
   constructor(
-    @InjectModel(Company.name) private readonly companyModel: SoftDeleteModel<CompanyDocument>
+    @InjectModel(Company.name) private readonly companyModel: MongooseDeleteModel<CompanyDocument>
   ) {}
   async create(createCompanyDto: CreateCompanyDto, user: IUser) {
     return await this.companyModel.create({
@@ -22,21 +22,21 @@ export class CompaniesService {
     });
   }
 
-  //trả về các document có isDeleted = false -> sử dụng findWithDeleted
+  //trả về các document có deleted = false -> sử dụng findWithDeleted để lấy tất cả
   async findAll(currentPage: number, limit: number, qs: string) {
-    const { filter, sort, population } = aqp(qs);
+    const { filter, population } = aqp(qs);
+    let { sort }: { sort: any } = aqp(qs);
     delete filter.page;
+    console.log('>>> check filter:', filter);
     const offset = (currentPage - 1) * limit;
     const defaultLimit = limit ? limit : 10;
 
-    console.log('>>> check sort: ', sort);
     const totalItems = (await this.companyModel.find(filter)).length;
     const totalPages = Math.ceil(totalItems / defaultLimit);
 
-    // if (isEmpty(sort)) {
-    //   // @ts-ignore: Unreachable code error
-    //   sort = '-updatedAt';
-    // }
+    if (!sort) {
+      sort = '-updatedAt';
+    }
 
     const result = await this.companyModel
       .find(filter)
@@ -76,17 +76,12 @@ export class CompaniesService {
   }
 
   async remove(id: string, user: IUser) {
-    await this.companyModel.updateOne(
+    return await this.companyModel.delete(
+      { _id: id },
       {
-        _id: id,
-      },
-      {
-        deletedBy: {
-          _id: user._id,
-          email: user.email,
-        },
+        _id: user._id,
+        email: user.email,
       }
     );
-    return await this.companyModel.softDelete({ _id: id });
   }
 }

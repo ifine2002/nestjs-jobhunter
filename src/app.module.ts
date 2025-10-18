@@ -5,7 +5,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
-import { softDeletePlugin } from 'soft-delete-plugin-mongoose';
+import mongooseDelete from 'mongoose-delete';
 import { CompaniesModule } from './companies/companies.module';
 
 @Module({
@@ -15,7 +15,12 @@ import { CompaniesModule } from './companies/companies.module';
       useFactory: async (configService: ConfigService) => ({
         uri: configService.get<string>('MONGODB_URI'),
         connectionFactory: (connection) => {
-          connection.plugin(softDeletePlugin);
+          connection.plugin(mongooseDelete, {
+            ddeletedAt: true, // Thêm field deletedAt
+            deletedBy: true, // Thêm field deletedBy
+            deletedByType: Object, // Kiểu dữ liệu của deletedBy
+            overrideMethods: 'all',
+          });
           return connection;
         },
       }),
