@@ -51,11 +51,11 @@ export class UsersService {
     return `This action updates a user`;
   }
 
-  remove(id: string) {
+  async remove(id: string) {
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return 'not found user';
     }
-    return this.userModel.softDelete({
+    return await this.userModel.softDelete({
       _id: id,
     });
   }
