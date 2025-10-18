@@ -2,8 +2,8 @@ import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestj
 import { CompaniesService } from './companies.service';
 import { CreateCompanyDto } from './dto/create-company.dto';
 import { UpdateCompanyDto } from './dto/update-company.dto';
-import { User } from 'src/decorator/customize';
-import { IUser } from 'src/users/users.interface';
+import { ResponseMessage, User } from 'src/common/decorators/customize';
+import { IUser } from 'src/common/interfaces/users.interface';
 
 @Controller('companies')
 export class CompaniesController {
@@ -14,6 +14,7 @@ export class CompaniesController {
     return this.companiesService.create(createCompanyDto, user);
   }
 
+  @ResponseMessage('Fetch all companies success!')
   @Get()
   findAll(@Query('page') currentPage: string, @Query('limit') limit: string, @Query() qs: string) {
     return this.companiesService.findAll(+currentPage, +limit, qs);

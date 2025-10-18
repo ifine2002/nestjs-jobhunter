@@ -4,7 +4,7 @@ import { UpdateCompanyDto } from './dto/update-company.dto';
 import { Company, CompanyDocument } from './schemas/company.schema';
 import { InjectModel } from '@nestjs/mongoose';
 import { SoftDeleteModel } from 'soft-delete-plugin-mongoose';
-import { IUser } from 'src/users/users.interface';
+import { IUser } from 'src/common/interfaces/users.interface';
 import aqp from 'api-query-params';
 
 @Injectable()
@@ -28,8 +28,6 @@ export class CompaniesService {
     delete filter.page;
     const offset = (currentPage - 1) * limit;
     const defaultLimit = limit ? limit : 10;
-
-    console.log('>>> check sort: ', sort);
     const totalItems = (await this.companyModel.find(filter)).length;
     const totalPages = Math.ceil(totalItems / defaultLimit);
 
