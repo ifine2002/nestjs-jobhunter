@@ -3,10 +3,17 @@ import { UsersService } from 'src/users/users.service';
 import { JwtService } from '@nestjs/jwt';
 import { IUser } from 'src/common/interfaces/users.interface';
 import { RegisterUserDto } from 'src/users/dto/create-user.dto';
+import { ConfigService } from '@nestjs/config';
+import { Response } from 'express';
+import ms from 'ms';
 
 @Injectable()
 export class AuthService {
-  constructor(private usersService: UsersService, private jwtService: JwtService) {}
+  constructor(
+    private usersService: UsersService,
+    private jwtService: JwtService,
+    private configService: ConfigService
+  ) {}
 
   async validateUser(username: string, pass: string): Promise<any> {
     const user = await this.usersService.findOneByUsername(username);
@@ -18,7 +25,7 @@ export class AuthService {
     }
     return null;
   }
-  async login(user: IUser) {
+  async login(user: IUser, res: Response) {
     const { _id, name, email, role } = user;
     const payload = {
       sub: 'token login',
@@ -28,12 +35,27 @@ export class AuthService {
       email,
       role,
     };
+
+    //create refresh token
+    const refresh_token = this.createRefeshToken(payload);
+
+    //update refresh token in db
+    this.usersService.updateRefreshToken(refresh_token, _id);
+
+    //set refresh_token cookies
+    res.cookie('refresh_token', refresh_token, {
+      maxAge: ms(this.configService.get<string>('JWT_REFRESH_EXPIRE')),
+      httpOnly: true,
+    });
+
     return {
       access_token: this.jwtService.sign(payload),
-      _id,
-      name,
-      email,
-      role,
+      user: {
+        _id,
+        name,
+        email,
+        role,
+      },
     };
   }
   async register(registerUserDto: RegisterUserDto) {
@@ -43,4 +65,12 @@ export class AuthService {
       createdAt: user?.createdAt,
     };
   }
+
+  createRefeshToken = (payload: any) => {
+    const refresh_token = this.jwtService.sign(payload, {
+      secret: this.configService.get<string>('JWT_REFRESH_TOKEN_SECRET'),
+      expiresIn: this.configService.get<string>('JWT_REFRESH_EXPIRE'),
+    });
+    return refresh_token;
+  };
 }
