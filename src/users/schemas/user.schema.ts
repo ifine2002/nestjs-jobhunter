@@ -9,7 +9,7 @@ export class User extends BaseSchema {
   @Prop()
   name: string;
 
-  @Prop()
+  @Prop({ unique: true, lowercase: true })
   email: string;
 
   @Prop()

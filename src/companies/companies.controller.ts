@@ -10,28 +10,36 @@ export class CompaniesController {
   constructor(private readonly companiesService: CompaniesService) {}
 
   @Post()
-  create(@Body() createCompanyDto: CreateCompanyDto, @User() user: IUser) {
-    return this.companiesService.create(createCompanyDto, user);
+  async create(@Body() createCompanyDto: CreateCompanyDto, @User() user: IUser) {
+    return await this.companiesService.create(createCompanyDto, user);
   }
 
   @ResponseMessage('Fetch all companies success!')
   @Get()
-  findAll(@Query('page') currentPage: string, @Query('limit') limit: string, @Query() qs: string) {
-    return this.companiesService.findAll(+currentPage, +limit, qs);
+  async findAll(
+    @Query('page') currentPage: string,
+    @Query('limit') limit: string,
+    @Query() qs: string
+  ) {
+    return await this.companiesService.findAll(+currentPage, +limit, qs);
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.companiesService.findOne(+id);
+  async findOne(@Param('id') id: string) {
+    return await this.companiesService.findOne(id);
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateCompanyDto: UpdateCompanyDto, @User() user: IUser) {
-    return this.companiesService.update(id, updateCompanyDto, user);
+  async update(
+    @Param('id') id: string,
+    @Body() updateCompanyDto: UpdateCompanyDto,
+    @User() user: IUser
+  ) {
+    return await this.companiesService.update(id, updateCompanyDto, user);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string, @User() user: IUser) {
-    return this.companiesService.remove(id, user);
+  async remove(@Param('id') id: string, @User() user: IUser) {
+    return await this.companiesService.remove(id, user);
   }
 }

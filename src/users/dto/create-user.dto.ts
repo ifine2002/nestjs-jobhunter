@@ -1,11 +1,12 @@
-import { IsEmail, IsNotEmpty } from 'class-validator';
+import { IsEmail, IsNotEmpty, IsNotEmptyObject, IsObject, ValidateNested } from 'class-validator';
+import { Type } from 'class-transformer';
 import mongoose from 'mongoose';
 
 class Company {
-  @IsNotEmpty()
+  @IsNotEmpty({ message: '_id must be not blank' })
   _id: mongoose.Schema.Types.ObjectId;
 
-  @IsNotEmpty()
+  @IsNotEmpty({ message: 'name must be not blank' })
   name: string;
 }
 
@@ -31,6 +32,12 @@ export class CreateUserDto {
 
   @IsNotEmpty({ message: 'role must be not blank' })
   role: string;
+
+  @IsNotEmptyObject()
+  @IsObject()
+  @ValidateNested()
+  @Type(() => Company)
+  company: Company;
 }
 
 export class RegisterUserDto {
@@ -44,6 +51,12 @@ export class RegisterUserDto {
   @IsNotEmpty({ message: 'password must be not blank' })
   password: string;
 
-  @IsNotEmpty({ message: 'confirmPassword must be not blank' })
-  confirmPassword: string;
+  @IsNotEmpty({ message: 'age must be not blank' })
+  age: string;
+
+  @IsNotEmpty({ message: 'gender must be not blank' })
+  gender: string;
+
+  @IsNotEmpty({ message: 'address must be not blank' })
+  address: string;
 }

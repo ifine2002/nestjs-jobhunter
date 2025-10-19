@@ -20,4 +20,16 @@ export class BaseSchema {
     _id: mongoose.Schema.Types.ObjectId;
     email: string;
   };
+
+  @Prop()
+  isDeleted: boolean;
+
+  @Prop()
+  createdAt: Date;
+
+  @Prop()
+  updatedAt: Date;
+
+  @Prop()
+  deletedAt: Date;
 }

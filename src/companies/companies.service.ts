@@ -54,7 +54,7 @@ export class CompaniesService {
     };
   }
 
-  findOne(id: number) {
+  findOne(id: string) {
     return `This action returns a #${id} company`;
   }
 
@@ -85,6 +85,6 @@ export class CompaniesService {
         },
       }
     );
-    return await this.companyModel.softDelete({ _id: id });
+    return this.companyModel.softDelete({ _id: id });
   }
 }
