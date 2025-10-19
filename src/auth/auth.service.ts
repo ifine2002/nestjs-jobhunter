@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { UsersService } from 'src/users/users.service';
 import { JwtService } from '@nestjs/jwt';
 import { IUser } from 'src/common/interfaces/users.interface';
@@ -72,5 +72,52 @@ export class AuthService {
       expiresIn: this.configService.get<string>('JWT_REFRESH_EXPIRE'),
     });
     return refresh_token;
+  };
+
+  processNewToken = async (refreshToken: string, res: Response) => {
+    try {
+      this.jwtService.verify(refreshToken, {
+        secret: this.configService.get<string>('JWT_REFRESH_TOKEN_SECRET'),
+      });
+
+      const user = await this.usersService.findUserByToken(refreshToken);
+      if (user) {
+        const { _id, name, email, role } = user;
+        const payload = {
+          sub: 'token login',
+          iss: 'from server',
+          _id,
+          name,
+          email,
+          role,
+        };
+
+        //create new refresh token
+        const new_refresh_token = this.createRefeshToken(payload);
+
+        //update refresh token in db
+        this.usersService.updateRefreshToken(new_refresh_token, _id.toString());
+
+        //set refresh_token cookies
+        res.cookie('refresh_token', new_refresh_token, {
+          maxAge: ms(this.configService.get<string>('JWT_REFRESH_EXPIRE')),
+          httpOnly: true,
+        });
+
+        return {
+          access_token: this.jwtService.sign(payload),
+          user: {
+            _id,
+            name,
+            email,
+            role,
+          },
+        };
+      } else {
+        throw new BadRequestException('Refresh token is invalid');
+      }
+    } catch (error) {
+      throw new BadRequestException('Refresh token is invalid');
+    }
   };
 }
