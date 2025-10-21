@@ -2,7 +2,7 @@ import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestj
 import { CompaniesService } from './companies.service';
 import { CreateCompanyDto } from './dto/create-company.dto';
 import { UpdateCompanyDto } from './dto/update-company.dto';
-import { ResponseMessage, User } from 'src/common/decorators/customize';
+import { Public, ResponseMessage, User } from 'src/common/decorators/customize';
 import { IUser } from 'src/common/interfaces/users.interface';
 
 @Controller('companies')
@@ -14,6 +14,7 @@ export class CompaniesController {
     return await this.companiesService.create(createCompanyDto, user);
   }
 
+  @Public()
   @ResponseMessage('Fetch all companies success!')
   @Get()
   async findAll(
@@ -23,7 +24,7 @@ export class CompaniesController {
   ) {
     return await this.companiesService.findAll(+currentPage, +limit, qs);
   }
-
+  @Public()
   @Get(':id')
   async findOne(@Param('id') id: string) {
     return await this.companiesService.findOne(id);

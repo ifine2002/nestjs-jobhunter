@@ -17,6 +17,9 @@ class Company {
 
   @IsNotEmpty({ message: 'name must be not blank' })
   name: string;
+
+  @IsNotEmpty({ message: 'logo must be not blank' })
+  logo: string;
 }
 
 export class CreateJobDto {

@@ -27,7 +27,6 @@ export class CompaniesService {
     const { filter, sort, population } = aqp(qs);
     delete filter.current;
     delete filter.pageSize;
-    console.log('>> check:', filter);
     const offset = (currentPage - 1) * limit;
     const defaultLimit = limit ? limit : 10;
     const totalItems = (await this.companyModel.find(filter)).length;
