@@ -17,8 +17,8 @@ export class CompaniesController {
   @ResponseMessage('Fetch all companies success!')
   @Get()
   async findAll(
-    @Query('page') currentPage: string,
-    @Query('limit') limit: string,
+    @Query('current') currentPage: string,
+    @Query('pageSize') limit: string,
     @Query() qs: string
   ) {
     return await this.companiesService.findAll(+currentPage, +limit, qs);

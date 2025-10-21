@@ -22,8 +22,8 @@ export class UsersController {
   @ResponseMessage('Fetch user with paginate')
   @Get()
   async findAll(
-    @Query('page') currentPage: string,
-    @Query('limit') limit: string,
+    @Query('current') currentPage: string,
+    @Query('pageSize') limit: string,
     @Query() qs: string
   ) {
     return await this.usersService.findAll(+currentPage, +limit, qs);
@@ -44,7 +44,7 @@ export class UsersController {
 
   @ResponseMessage('Delete a user')
   @Delete(':id')
-  remove(@Param('id') id: string, @User() user: IUser) {
-    return this.usersService.remove(id, user);
+  async remove(@Param('id') id: string, @User() user: IUser) {
+    return await this.usersService.remove(id, user);
   }
 }

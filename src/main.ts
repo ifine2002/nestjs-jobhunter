@@ -19,9 +19,11 @@ async function bootstrap() {
 
   //config cors
   app.enableCors({
-    origin: '*',
-    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+    origin: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
     preflightContinue: false,
+    credentials: true,
   });
 
   //confif versioning
