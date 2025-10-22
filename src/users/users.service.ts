@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateUserDto, RegisterUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User, UserDocument } from './schemas/user.schema';
@@ -97,7 +97,15 @@ export class UsersService {
   }
 
   async findOne(id: string) {
-    return await this.userModel.findById(id).select('-password');
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      throw new BadRequestException(`id is mongo id`);
+    }
+
+    const user = await this.userModel.findById(id).select('-password');
+    if (!user) {
+      throw new NotFoundException(`User with ID ${id} not found`);
+    }
+    return user;
   }
 
   async findOneByUsername(username: string) {
@@ -111,6 +119,7 @@ export class UsersService {
   }
 
   async update(updateUserDto: UpdateUserDto, user: IUser) {
+    await this.findOne(updateUserDto._id);
     return await this.userModel.updateOne(
       { _id: updateUserDto._id },
       { ...updateUserDto, updatedBy: { _id: user._id, email: user.email } }
@@ -118,9 +127,7 @@ export class UsersService {
   }
 
   async remove(id: string, user: IUser) {
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      return 'not found user';
-    }
+    await this.findOne(id);
     await this.userModel.updateOne(
       { _id: id },
       { deletedBy: { _id: user._id, email: user.email } }

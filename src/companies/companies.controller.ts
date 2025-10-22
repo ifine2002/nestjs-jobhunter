@@ -9,6 +9,7 @@ import { IUser } from 'src/common/interfaces/users.interface';
 export class CompaniesController {
   constructor(private readonly companiesService: CompaniesService) {}
 
+  @ResponseMessage('Create a company')
   @Post()
   async create(@Body() createCompanyDto: CreateCompanyDto, @User() user: IUser) {
     return await this.companiesService.create(createCompanyDto, user);
@@ -24,12 +25,15 @@ export class CompaniesController {
   ) {
     return await this.companiesService.findAll(+currentPage, +limit, qs);
   }
+
   @Public()
+  @ResponseMessage('Get a company by id')
   @Get(':id')
   async findOne(@Param('id') id: string) {
     return await this.companiesService.findOne(id);
   }
 
+  @ResponseMessage('Update a company by id')
   @Patch(':id')
   async update(
     @Param('id') id: string,
@@ -39,6 +43,7 @@ export class CompaniesController {
     return await this.companiesService.update(id, updateCompanyDto, user);
   }
 
+  @ResponseMessage('Delete a company')
   @Delete(':id')
   async remove(@Param('id') id: string, @User() user: IUser) {
     return await this.companiesService.remove(id, user);

@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateJobDto } from './dto/create-job.dto';
 import { UpdateJobDto } from './dto/update-job.dto';
 import { IUser } from 'src/common/interfaces/users.interface';
@@ -79,10 +79,18 @@ export class JobsService {
   }
 
   async findOne(id: string) {
-    return await this.jobModel.findById(id);
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      throw new BadRequestException(`id is mongo id`);
+    }
+    const job = await this.jobModel.findById(id);
+    if (!job) {
+      throw new NotFoundException(`Job with ID ${id} not found`);
+    }
+    return job;
   }
 
   async update(id: string, updateJobDto: UpdateJobDto, user: IUser) {
+    await this.findOne(id);
     return await this.jobModel.updateOne(
       { _id: id },
       { ...updateJobDto, updatedBy: { _id: user._id, email: user.email } }
@@ -90,9 +98,7 @@ export class JobsService {
   }
 
   async remove(id: string, user: IUser) {
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      return 'not found user';
-    }
+    await this.findOne(id);
     await this.jobModel.updateOne({ _id: id }, { deletedBy: { _id: user._id, email: user.email } });
     return this.jobModel.softDelete({
       _id: id,
