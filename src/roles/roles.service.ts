@@ -7,10 +7,14 @@ import { SoftDeleteModel } from 'soft-delete-plugin-mongoose';
 import { IUser } from 'src/common/interfaces/users.interface';
 import aqp from 'api-query-params';
 import mongoose from 'mongoose';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class RolesService {
-  constructor(@InjectModel(Role.name) private readonly roleModel: SoftDeleteModel<RoleDocument>) {}
+  constructor(
+    @InjectModel(Role.name) private readonly roleModel: SoftDeleteModel<RoleDocument>,
+    private configService: ConfigService
+  ) {}
   async create(createRoleDto: CreateRoleDto, user: IUser) {
     const { name } = createRoleDto;
     const role = await this.roleModel.findOne({ name });
@@ -69,7 +73,7 @@ export class RolesService {
     }
     const role = (await this.roleModel.findById(id)).populate({
       path: 'permissions',
-      select: { _id: 1, apiPath: 1, name: 1, method: 1 },
+      select: { _id: 1, apiPath: 1, name: 1, method: 1, module: 1 },
     });
     if (!role) {
       throw new NotFoundException(`Role with ID ${id} not found`);
@@ -99,7 +103,11 @@ export class RolesService {
   }
 
   async remove(id: string, user: IUser) {
-    await this.findOne(id);
+    const roleDB = await this.findOne(id);
+    const nameRoleAdmin = this.configService.get<string>('NAME_ROLE_ADMIN');
+    if (roleDB.name === nameRoleAdmin) {
+      throw new BadRequestException(`Cannot delete role with name = ${nameRoleAdmin}`);
+    }
     await this.roleModel.updateOne(
       { _id: id },
       { deletedBy: { _id: user._id, email: user.email } }

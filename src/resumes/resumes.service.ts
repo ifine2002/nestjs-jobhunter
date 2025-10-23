@@ -61,7 +61,7 @@ export class ResumesService {
       .limit(defaultLimit)
       .sort(sort as any)
       .populate(population)
-      .select(projection as any)
+      .select(projection)
       .exec();
     return {
       meta: {
@@ -118,6 +118,12 @@ export class ResumesService {
   }
 
   async findByUsers(user: IUser) {
-    return await this.resumeModel.find({ userId: user._id });
+    return await this.resumeModel
+      .find({ userId: user._id })
+      .sort('-createdAt')
+      .populate([
+        { path: 'companyId', select: { name: 1 } },
+        { path: 'jobId', select: { name: 1 } },
+      ]);
   }
 }

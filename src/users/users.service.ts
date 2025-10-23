@@ -8,10 +8,14 @@ import { SoftDeleteModel } from 'soft-delete-plugin-mongoose';
 import mongoose from 'mongoose';
 import { IUser } from 'src/common/interfaces/users.interface';
 import aqp from 'api-query-params';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class UsersService {
-  constructor(@InjectModel(User.name) private readonly userModel: SoftDeleteModel<UserDocument>) {}
+  constructor(
+    @InjectModel(User.name) private readonly userModel: SoftDeleteModel<UserDocument>,
+    private configService: ConfigService
+  ) {}
 
   getHashPassword = (plainText: string) => {
     const salt = bcrypt.genSaltSync(10);
@@ -63,7 +67,7 @@ export class UsersService {
   }
 
   async findAll(currentPage: number, limit: number, qs: string) {
-    const { filter, sort, population } = aqp(qs);
+    const { filter, sort, population, projection } = aqp(qs);
     delete filter.page;
     delete filter.current;
     delete filter.pageSize;
@@ -101,7 +105,10 @@ export class UsersService {
       throw new BadRequestException(`id is mongo id`);
     }
 
-    const user = await this.userModel.findById(id).select('-password');
+    const user = (await this.userModel.findById(id).select('-password')).populate({
+      path: 'role',
+      select: { name: 1 },
+    });
     if (!user) {
       throw new NotFoundException(`User with ID ${id} not found`);
     }
@@ -109,9 +116,11 @@ export class UsersService {
   }
 
   async findOneByUsername(username: string) {
-    return await this.userModel.findOne({
-      email: username,
-    });
+    return await this.userModel
+      .findOne({
+        email: username,
+      })
+      .populate({ path: 'role', select: { name: 1, permissions: 1 } });
   }
 
   isValidPassword(password: string, hashPassword: string) {
@@ -127,7 +136,11 @@ export class UsersService {
   }
 
   async remove(id: string, user: IUser) {
-    await this.findOne(id);
+    const userDB = await this.findOne(id);
+    const emailAdmin = this.configService.get<string>('EMAIL_ADMIN');
+    if (userDB.email === emailAdmin) {
+      throw new BadRequestException(`Cannot delete admin account`);
+    }
     await this.userModel.updateOne(
       { _id: id },
       { deletedBy: { _id: user._id, email: user.email } }
