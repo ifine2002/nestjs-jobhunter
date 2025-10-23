@@ -9,11 +9,13 @@ import mongoose from 'mongoose';
 import { IUser } from 'src/common/interfaces/users.interface';
 import aqp from 'api-query-params';
 import { ConfigService } from '@nestjs/config';
+import { Role, RoleDocument } from 'src/roles/schemas/role.schema';
 
 @Injectable()
 export class UsersService {
   constructor(
     @InjectModel(User.name) private readonly userModel: SoftDeleteModel<UserDocument>,
+    @InjectModel(Role.name) private readonly roleModel: SoftDeleteModel<RoleDocument>,
     private configService: ConfigService
   ) {}
 
@@ -54,6 +56,10 @@ export class UsersService {
       throw new BadRequestException('Email already exists');
     }
 
+    //fetch user role
+    const roleName = this.configService.get<string>('NORMAL_USER');
+    const roleUser = await this.roleModel.findOne({ name: roleName });
+
     const hashPassword = this.getHashPassword(password);
     return await this.userModel.create({
       name: name,
@@ -62,7 +68,7 @@ export class UsersService {
       age: age,
       gender: gender,
       address: address,
-      role: 'USER',
+      role: roleUser?._id,
     });
   }
 
@@ -120,7 +126,7 @@ export class UsersService {
       .findOne({
         email: username,
       })
-      .populate({ path: 'role', select: { name: 1, permissions: 1 } });
+      .populate({ path: 'role', select: { name: 1 } });
   }
 
   isValidPassword(password: string, hashPassword: string) {
@@ -155,6 +161,8 @@ export class UsersService {
   };
 
   findUserByToken = async (refreshToken: string) => {
-    return await this.userModel.findOne({ refreshToken });
+    return await this.userModel
+      .findOne({ refreshToken })
+      .populate({ path: 'role', select: { name: 1 } });
   };
 }

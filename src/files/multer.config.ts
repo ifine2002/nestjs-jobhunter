@@ -63,7 +63,7 @@ export class MulterConfigService implements MulterOptionsFactory {
         } else cb(null, true);
       },
       limits: {
-        fileSize: 1024 * 1024 * 3, // 1MB
+        fileSize: 1024 * 1024 * 5, // 1MB
       },
     };
   }
