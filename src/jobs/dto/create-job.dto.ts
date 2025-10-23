@@ -29,7 +29,7 @@ export class CreateJobDto {
   @IsNotEmpty({ message: 'skills must be not blank' })
   @IsArray({ message: 'skills are formatted as arrays' })
   @IsString({ each: true, message: 'skill is formatted as string' })
-  skills: string;
+  skills: string[];
 
   @IsNotEmptyObject()
   @IsObject()

@@ -10,7 +10,7 @@ export class Job extends BaseSchema {
   name: string;
 
   @Prop()
-  skill: string[];
+  skills: string[];
 
   @Prop({ type: Object })
   company: {

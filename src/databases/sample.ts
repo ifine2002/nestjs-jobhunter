@@ -1,5 +1,35 @@
 export const INIT_PERMISSIONS = [
   {
+    name: 'Get Subscriber with paginate',
+    apiPath: '/api/v1/subscribers',
+    method: 'GET',
+    module: 'SUBSCRIBERS',
+  },
+  {
+    name: 'Create Subscriber',
+    apiPath: '/api/v1/subscribers',
+    method: 'POST',
+    module: 'SUBSCRIBERS',
+  },
+  {
+    name: 'Update Subscriber',
+    apiPath: '/api/v1/subscribers/:id',
+    method: 'PATCH',
+    module: 'SUBSCRIBERS',
+  },
+  {
+    name: 'Delete Subscriber',
+    apiPath: '/api/v1/subscribers/:id',
+    method: 'DELETE',
+    module: 'SUBSCRIBERS',
+  },
+  {
+    name: 'Get Subscriber by id',
+    apiPath: '/api/v1/subscribers/:id',
+    method: 'GET',
+    module: 'SUBSCRIBERS',
+  },
+  {
     name: 'Get Account',
     apiPath: '/api/v1/auth/account',
     method: 'GET',
