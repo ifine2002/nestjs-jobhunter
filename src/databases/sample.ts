@@ -1,5 +1,17 @@
 export const INIT_PERMISSIONS = [
   {
+    name: 'Get Account',
+    apiPath: '/api/v1/auth/account',
+    method: 'GET',
+    module: 'AUTH',
+  },
+  {
+    name: 'Logout',
+    apiPath: '/api/v1/auth/logout',
+    method: 'POST',
+    module: 'AUTH',
+  },
+  {
     name: 'Get Company with paginate',
     apiPath: '/api/v1/companies',
     method: 'GET',

@@ -111,7 +111,7 @@ export class UsersService {
       throw new BadRequestException(`id is mongo id`);
     }
 
-    const user = (await this.userModel.findById(id).select('-password')).populate({
+    const user = (await this.userModel.findById(id).select('-password'))?.populate({
       path: 'role',
       select: { name: 1 },
     });
@@ -126,7 +126,7 @@ export class UsersService {
       .findOne({
         email: username,
       })
-      .populate({ path: 'role', select: { name: 1 } });
+      ?.populate({ path: 'role', select: { name: 1 } });
   }
 
   isValidPassword(password: string, hashPassword: string) {
@@ -163,6 +163,6 @@ export class UsersService {
   findUserByToken = async (refreshToken: string) => {
     return await this.userModel
       .findOne({ refreshToken })
-      .populate({ path: 'role', select: { name: 1 } });
+      ?.populate({ path: 'role', select: { name: 1 } });
   };
 }

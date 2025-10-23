@@ -71,7 +71,7 @@ export class RolesService {
     if (!mongoose.Types.ObjectId.isValid(id)) {
       throw new BadRequestException(`id is mongo id`);
     }
-    const role = (await this.roleModel.findById(id)).populate({
+    const role = (await this.roleModel.findById(id))?.populate({
       path: 'permissions',
       select: { _id: 1, apiPath: 1, name: 1, method: 1, module: 1 },
     });

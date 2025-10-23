@@ -121,7 +121,7 @@ export class ResumesService {
     return await this.resumeModel
       .find({ userId: user._id })
       .sort('-createdAt')
-      .populate([
+      ?.populate([
         { path: 'companyId', select: { name: 1 } },
         { path: 'jobId', select: { name: 1 } },
       ]);
