@@ -1,53 +1,42 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
-import { CreateResumeDto } from './dto/create-resume.dto';
-import { UpdateResumeDto } from './dto/update-resume.dto';
-import { Resume, ResumeDocument } from './schemas/resume.schema';
+import { CreateRoleDto } from './dto/create-role.dto';
+import { UpdateRoleDto } from './dto/update-role.dto';
 import { InjectModel } from '@nestjs/mongoose';
+import { Role, RoleDocument } from './schemas/role.schema';
 import { SoftDeleteModel } from 'soft-delete-plugin-mongoose';
 import { IUser } from 'src/common/interfaces/users.interface';
 import aqp from 'api-query-params';
 import mongoose from 'mongoose';
 
 @Injectable()
-export class ResumesService {
-  constructor(
-    @InjectModel(Resume.name) private readonly resumeModel: SoftDeleteModel<ResumeDocument>
-  ) {}
-  async create(createResumeDto: CreateResumeDto, user: IUser) {
-    const newCV = await this.resumeModel.create({
-      ...createResumeDto,
-      email: user.email,
-      userId: user._id,
-      status: 'PENDING',
-      history: [
-        {
-          status: 'PENDING',
-          updatedAt: new Date(),
-          updatedBy: {
-            _id: user._id,
-            email: user.email,
-          },
-        },
-      ],
+export class RolesService {
+  constructor(@InjectModel(Role.name) private readonly roleModel: SoftDeleteModel<RoleDocument>) {}
+  async create(createRoleDto: CreateRoleDto, user: IUser) {
+    const { name } = createRoleDto;
+    const role = await this.roleModel.findOne({ name });
+    if (role) {
+      throw new BadRequestException(`Role with name=${name} already exists`);
+    }
+    const newRole = await this.roleModel.create({
+      ...createRoleDto,
       createdBy: {
         _id: user._id,
         email: user.email,
       },
     });
     return {
-      _id: newCV?._id,
-      createdAt: newCV?.createdAt,
+      _id: newRole._id,
+      createdAt: newRole.createdAt,
     };
   }
 
-  //trả về các document có isDeleted = false -> sử dụng findWithDeleted
   async findAll(currentPage: number, limit: number, qs: string) {
     const { filter, sort, population, projection } = aqp(qs);
     delete filter.current;
     delete filter.pageSize;
     const offset = (currentPage - 1) * limit;
     const defaultLimit = limit ? limit : 10;
-    const totalItems = (await this.resumeModel.find(filter)).length;
+    const totalItems = (await this.roleModel.find(filter)).length;
     const totalPages = Math.ceil(totalItems / defaultLimit);
 
     // if (isEmpty(sort)) {
@@ -55,7 +44,7 @@ export class ResumesService {
     //   sort = '-updatedAt';
     // }
 
-    const result = await this.resumeModel
+    const result = await this.roleModel
       .find(filter)
       .skip(offset)
       .limit(defaultLimit)
@@ -78,29 +67,32 @@ export class ResumesService {
     if (!mongoose.Types.ObjectId.isValid(id)) {
       throw new BadRequestException(`id is mongo id`);
     }
-    const resume = await this.resumeModel.findById(id);
-    if (!resume) {
-      throw new NotFoundException(`Resume with ID ${id} not found`);
+    const role = (await this.roleModel.findById(id)).populate({
+      path: 'permissions',
+      select: { _id: 1, apiPath: 1, name: 1, method: 1 },
+    });
+    if (!role) {
+      throw new NotFoundException(`Role with ID ${id} not found`);
     }
-    return resume;
+    return role;
   }
 
-  async update(id: string, status: string, user: IUser) {
-    await this.findOne(id);
-    return await this.resumeModel.updateOne(
+  async update(id: string, updateRoleDto: UpdateRoleDto, user: IUser) {
+    const { name } = updateRoleDto;
+    const role = await this.findOne(id);
+    const roleDB = await this.roleModel.findOne({
+      name,
+    });
+    if (roleDB && role.id !== roleDB.id) {
+      throw new BadRequestException(`role with name=${name} already exists`);
+    }
+    return await this.roleModel.updateOne(
       { _id: id },
       {
-        status: status,
-        updatedBy: { _id: user._id, email: user.email },
-        $push: {
-          history: {
-            status: status,
-            updatedAt: new Date(),
-            updatedBy: {
-              _id: user._id,
-              email: user.email,
-            },
-          },
+        ...updateRoleDto,
+        updatedBy: {
+          _id: user._id,
+          email: user.email,
         },
       }
     );
@@ -108,16 +100,12 @@ export class ResumesService {
 
   async remove(id: string, user: IUser) {
     await this.findOne(id);
-    await this.resumeModel.updateOne(
+    await this.roleModel.updateOne(
       { _id: id },
       { deletedBy: { _id: user._id, email: user.email } }
     );
-    return this.resumeModel.softDelete({
+    return this.roleModel.softDelete({
       _id: id,
     });
-  }
-
-  async findByUsers(user: IUser) {
-    return await this.resumeModel.find({ userId: user._id });
   }
 }
