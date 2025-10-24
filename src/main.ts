@@ -9,16 +9,7 @@ import { NestExpressApplication } from '@nestjs/platform-express';
 import { join } from 'path';
 import helmet from 'helmet';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-import { UsersModule } from './users/users.module';
-import { SubscribersModule } from './subscribers/subscribers.module';
-import { RolesModule } from './roles/roles.module';
-import { PermissionsModule } from './permissions/permissions.module';
-import { ResumesModule } from './resumes/resumes.module';
-import { MailModule } from './mail/mail.module';
-import { AuthModule } from './auth/auth.module';
-import { CompaniesModule } from './companies/companies.module';
-import { JobsModule } from './jobs/jobs.module';
-import { FilesModule } from './files/files.module';
+import { GlobalExceptionFilter } from './common/filters/http-exception.filter';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
@@ -32,6 +23,9 @@ async function bootstrap() {
       whitelist: true,
     })
   );
+
+  //config exception filter
+  app.useGlobalFilters(new GlobalExceptionFilter());
 
   //config cookies
   app.use(cookieParser());
