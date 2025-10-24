@@ -39,9 +39,9 @@ export class UsersController {
   }
 
   @ResponseMessage('Update a user')
-  @Patch()
-  async update(@Body() updateUserDto: UpdateUserDto, @User() user: IUser) {
-    return await this.usersService.update(updateUserDto, user);
+  @Patch(':id')
+  async update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto, @User() user: IUser) {
+    return await this.usersService.update(id, updateUserDto, user);
   }
 
   @ResponseMessage('Delete a user')

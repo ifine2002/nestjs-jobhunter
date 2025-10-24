@@ -88,7 +88,7 @@ export class PermissionsService {
       apiPath,
       method,
     });
-    if (permission.id !== permissionDB.id) {
+    if (permissionDB && permission.id !== permissionDB.id) {
       throw new BadRequestException(
         `Permission with apiPath=${apiPath} and method=${method} already exists`
       );

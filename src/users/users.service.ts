@@ -133,10 +133,16 @@ export class UsersService {
     return bcrypt.compareSync(password, hashPassword);
   }
 
-  async update(updateUserDto: UpdateUserDto, user: IUser) {
-    await this.findOne(updateUserDto._id);
+  async update(_id: string, updateUserDto: UpdateUserDto, user: IUser) {
+    const { email } = updateUserDto;
+    const userDB = await this.findOne(_id);
+    const userCheck = await this.userModel.findOne({ email });
+
+    if (userCheck && userDB.id !== userCheck.id) {
+      throw new BadRequestException(`Email = ${email}`);
+    }
     return await this.userModel.updateOne(
-      { _id: updateUserDto._id },
+      { _id },
       { ...updateUserDto, updatedBy: { _id: user._id, email: user.email } }
     );
   }
