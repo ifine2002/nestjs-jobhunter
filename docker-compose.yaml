@@ -1,0 +1,36 @@
+# version: '3.8'
+#MongoDB 5.0+ requires a CPU with AVX support, => sử dụng image: mongo:4.4
+services:
+  db-mongo:
+    image: mongo:6.0.6
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: 123456
+    ports:
+      - 27017:27017
+    volumes:
+      - mongodb:/data/db
+    expose:
+      - 27017
+
+  be-nest:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      - db-mongo
+    # restart: unless-stopped
+    environment:
+      - PORT=8080
+      - NODE_ENV=production
+      - MONGODB_URI=mongodb://root:123456@db-mongo:27017/jobhunter?authSource=admin
+      # - DB_HOST=host.docker.internal
+    expose:
+      - 8080
+    ports:
+      - 8080:8080
+
+volumes:
+  mongodb:
+
+    # docker compose -p nestjs-jobhunter up -d
