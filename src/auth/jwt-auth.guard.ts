@@ -7,7 +7,7 @@ import {
 import { Reflector } from '@nestjs/core';
 import { AuthGuard } from '@nestjs/passport';
 import { Request } from 'express';
-import { IS_PUBLIC_KEY } from 'src/common/decorators/customize';
+import { IS_PUBLIC_KEY, IS_PUBLIC_PERMISSION } from 'src/common/decorators/customize';
 
 @Injectable()
 export class JwtAuthGuard extends AuthGuard('jwt') {
@@ -43,7 +43,12 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
       (permission) => permission.method === targetMethod && permission.apiPath === targetEndpoint
     );
 
-    if (!isExist) {
+    const isSkipPermission = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_PERMISSION, [
+      context.getHandler(),
+      context.getClass(),
+    ]);
+
+    if (!isExist && !isSkipPermission) {
       throw new ForbiddenException('You do not have permission to access this endpoint.');
     }
     return user;

@@ -2,7 +2,7 @@ import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestj
 import { SubscribersService } from './subscribers.service';
 import { CreateSubscriberDto } from './dto/create-subscriber.dto';
 import { UpdateSubscriberDto } from './dto/update-subscriber.dto';
-import { ResponseMessage, User } from 'src/common/decorators/customize';
+import { ResponseMessage, SkipCheckPermission, User } from 'src/common/decorators/customize';
 import { IUser } from 'src/common/interfaces/users.interface';
 
 @Controller('subscribers')
@@ -13,6 +13,13 @@ export class SubscribersController {
   @Post()
   async create(@Body() createSubscriberDto: CreateSubscriberDto, @User() user: IUser) {
     return await this.subscribersService.create(createSubscriberDto, user);
+  }
+
+  @ResponseMessage(`Get subscriber's skills`)
+  @SkipCheckPermission()
+  @Post('skills')
+  async getUserSkills(@User() user: IUser) {
+    return await this.subscribersService.getSkills(user);
   }
 
   @ResponseMessage('Fetch all subscriber with paginate')
@@ -32,13 +39,10 @@ export class SubscribersController {
   }
 
   @ResponseMessage('Update a subscriber')
-  @Patch(':id')
-  async update(
-    @Param('id') id: string,
-    @Body() updateSubscriberDto: UpdateSubscriberDto,
-    @User() user: IUser
-  ) {
-    return await this.subscribersService.update(id, updateSubscriberDto, user);
+  @SkipCheckPermission()
+  @Patch()
+  async update(@Body() updateSubscriberDto: UpdateSubscriberDto, @User() user: IUser) {
+    return await this.subscribersService.update(updateSubscriberDto, user);
   }
 
   @ResponseMessage('Delete a subscriber')

@@ -77,25 +77,20 @@ export class SubscribersService {
     return subscriber;
   }
 
-  async update(id: string, updateSubscriberDto: UpdateSubscriberDto, user: IUser) {
+  async update(updateSubscriberDto: UpdateSubscriberDto, user: IUser) {
     const { email } = updateSubscriberDto;
-    const subscriber = await this.findOne(id);
-    const subscriberDB = await this.subscriberModel.findOne({
-      email,
-    });
-    if (subscriberDB && subscriber.id !== subscriberDB.id) {
-      throw new BadRequestException(`Subscriber with email = ${email} already exists`);
-    }
-    return await this.subscriberModel.updateOne(
-      { _id: id },
+    const updated = await this.subscriberModel.updateOne(
+      { email },
       {
         ...updateSubscriberDto,
         updatedBy: {
           _id: user._id,
           email: user.email,
         },
-      }
+      },
+      { upsert: true }
     );
+    return updated;
   }
 
   async remove(id: string, user: IUser) {
@@ -106,5 +101,10 @@ export class SubscribersService {
     return this.subscriberModel.softDelete({
       _id: id,
     });
+  }
+
+  async getSkills(user: IUser) {
+    const { email } = user;
+    return await this.subscriberModel.findOne({ email }, { skills: 1 });
   }
 }
