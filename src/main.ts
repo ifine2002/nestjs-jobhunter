@@ -8,6 +8,17 @@ import cookieParser from 'cookie-parser';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { join } from 'path';
 import helmet from 'helmet';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { UsersModule } from './users/users.module';
+import { SubscribersModule } from './subscribers/subscribers.module';
+import { RolesModule } from './roles/roles.module';
+import { PermissionsModule } from './permissions/permissions.module';
+import { ResumesModule } from './resumes/resumes.module';
+import { MailModule } from './mail/mail.module';
+import { AuthModule } from './auth/auth.module';
+import { CompaniesModule } from './companies/companies.module';
+import { JobsModule } from './jobs/jobs.module';
+import { FilesModule } from './files/files.module';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
@@ -41,8 +52,32 @@ async function bootstrap() {
   app.setGlobalPrefix('api');
   app.enableVersioning({
     type: VersioningType.URI,
-    defaultVersion: ['1', '2'],
+    defaultVersion: ['1'],
     // prefix: 'api/v'
+  });
+
+  //config swagger
+  const config = new DocumentBuilder()
+    .setTitle('NestJS Jobhunter')
+    .setDescription('All Modules APIs')
+    .setVersion('1.0')
+    .addBearerAuth(
+      {
+        type: 'http',
+        scheme: 'Bearer',
+        bearerFormat: 'JWT',
+        in: 'header',
+      },
+      'token'
+    )
+    .addSecurityRequirements('token')
+
+    .build();
+  const documentFactory = () => SwaggerModule.createDocument(app, config);
+  SwaggerModule.setup('api/v1/docs', app, documentFactory, {
+    swaggerOptions: {
+      persistAuthorization: true,
+    },
   });
 
   await app.listen(configService.get<string>('PORT'));

@@ -2,16 +2,19 @@ import { Body, Controller, Get, Post, Req, Res, UseGuards } from '@nestjs/common
 import { AuthService } from './auth.service';
 import { Public, ResponseMessage, User } from 'src/common/decorators/customize';
 import { LocalAuthGuard } from './local-auth.guard';
-import { RegisterUserDto } from 'src/users/dto/create-user.dto';
+import { RegisterUserDto, UserLoginDto } from 'src/users/dto/create-user.dto';
 import { Request, Response } from 'express';
 import { IUser } from 'src/common/interfaces/users.interface';
 import { RolesService } from 'src/roles/roles.service';
+import { ApiBody, ApiTags } from '@nestjs/swagger';
 
+@ApiTags('auth')
 @Controller('auth')
 export class AuthController {
   constructor(private authService: AuthService, private rolesService: RolesService) {}
 
   @Public()
+  @ApiBody({ type: UserLoginDto })
   @ResponseMessage('Login success!')
   @UseGuards(LocalAuthGuard)
   @Post('/login')

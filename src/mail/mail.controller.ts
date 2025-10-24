@@ -3,7 +3,9 @@ import { MailService } from './mail.service';
 import { ResponseMessage } from 'src/common/decorators/customize';
 import { MailerService } from '@nestjs-modules/mailer';
 import { Cron } from '@nestjs/schedule';
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('mail')
 @Controller('mail')
 export class MailController {
   constructor(private readonly mailService: MailService) {}
